@@ -26,19 +26,6 @@ pub fn max_set_colours(sets: &[Set]) -> Set {
     Set { red: max_red, green: max_green, blue: max_blue }
 }
 
-pub fn min_required_cubes(g: &Game) -> Game {
-    let max_set = max_set_colours(&g.revelations[..]);
-    Game { id: g.id, revelations: vec![max_set] }
-}
-
-pub fn min_powers(games: &[Game]) -> Vec<usize> {
-    let mut to_return: Vec<usize> = Vec::new();
-    for g in games {
-        to_return.push(order_of_set(&max_set_colours(&g.revelations[..])).unwrap());
-    }
-    to_return
-}
-
 pub fn sum_min_power_of_max_sets(games: &[Game]) -> usize {
     games
         .iter()
