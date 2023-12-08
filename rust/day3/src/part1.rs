@@ -1,11 +1,5 @@
-
 fn is_symbol(c: char) -> bool {
     !c.is_ascii_digit() && c != '.'
-}
-
-struct GridNumber {
-    value: usize,
-    index: usize,
 }
 
 type Coordinate = [usize; 2];
