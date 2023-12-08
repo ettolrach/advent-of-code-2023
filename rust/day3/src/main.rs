@@ -8,11 +8,9 @@ fn main() -> std::io::Result<()> {
         eprintln!("Nothing found in stdin!");
         std::process::exit(1);
     }
-    let mut input = String::new();
-    for l in lines {
-        input.push_str(&l);
-    }
-    let part_numbers = part1::find_part_numbers(&input);
+    let lines_str: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+    let mut grid = part1::Grid::from_lines(&lines_str[..]);
+    let part_numbers: Vec<usize> = grid.get_part_numbers();
     let sum = part_numbers.iter().sum::<usize>();
     println!("{}", sum);
     Ok(())

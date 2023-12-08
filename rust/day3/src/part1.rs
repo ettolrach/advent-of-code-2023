@@ -36,6 +36,20 @@ impl Grid {
             height,
         }
     }
+    pub fn from_lines(lines_slice: &[&str]) -> Grid {
+        let height: usize = lines_slice.len();
+        let width: usize = lines_slice[0].len();
+        // let mut grid: Vec<char> = lines_slice
+        //     .iter()
+        //     .map(|s| s.chars())
+        //     .fold("".chars(), |a, b| a.chain(b))
+        //     .collect();
+        let mut grid: Vec<char> = Vec::new();
+        for s in lines_slice {
+            grid.append(&mut s.chars().collect::<Vec<char>>());
+        }
+        Grid { grid, width, height }
+    }
     pub fn to_index(&self, coordinate: Coordinate) -> usize {
         coordinate[0] + self.width * coordinate[1]
     }
@@ -114,14 +128,9 @@ impl Grid {
                 let to_check = self.get_surrounding_indicies_in_bounds(i);
                 for index in to_check {
                     if self.grid[index].is_ascii_digit() {
-                        eprintln!("Before:");
-                        self.print_grid();
                         to_return.push(self.get_number_from_index_and_delete(index));
-                        eprintln!("After:");
-                        self.print_grid();
                     }
                 }
-                eprintln!("Found so far: {:?}", to_return);
             }
         }
         to_return
@@ -215,9 +224,6 @@ mod tests {
         let mut sorted_correct_part_numbers = correct_part_numbers.clone();
         sorted_part_numbers.sort();
         sorted_correct_part_numbers.sort();
-
-        eprintln!("{:?}", sorted_part_numbers);
-        eprintln!("{:?}", sorted_correct_part_numbers);
 
         assert_eq!(sorted_part_numbers, sorted_correct_part_numbers);
         assert_eq!(correct_sum, sum);
