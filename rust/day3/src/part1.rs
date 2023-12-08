@@ -98,6 +98,15 @@ impl Grid {
         char_vec.iter().collect::<String>().parse::<usize>().unwrap()
         
     }
+    pub fn print_grid(&self) {
+        for i in 0..(self.height) {
+            let mut to_print: String = String::new();
+            for j in 0..(self.width) {
+                to_print.push(self.grid[self.width*i + j]);
+            }
+            eprintln!("{}", to_print);
+        }
+    }
     pub fn get_part_numbers(&mut self) -> Vec<usize> {
         let mut to_return: Vec<usize> = Vec::new();
         for i in 0..(self.grid.len()) {
@@ -105,9 +114,14 @@ impl Grid {
                 let to_check = self.get_surrounding_indicies_in_bounds(i);
                 for index in to_check {
                     if self.grid[index].is_ascii_digit() {
+                        eprintln!("Before:");
+                        self.print_grid();
                         to_return.push(self.get_number_from_index_and_delete(index));
+                        eprintln!("After:");
+                        self.print_grid();
                     }
                 }
+                eprintln!("Found so far: {:?}", to_return);
             }
         }
         to_return
@@ -140,5 +154,72 @@ mod tests {
         let part_numbers = find_part_numbers(&input);
 
         assert_eq!(4361, part_numbers.iter().sum::<usize>());
+    }
+
+    #[test]
+    fn input_extract() {
+        let input = String::from(
+".......12.......935............184.720...243........589.652..........435..........483.............6...........................904...........
+......*.....968*.....$............*........=..348...*..........986....*...................459....*........422................#......%482....
+....291............612....290..........903........699......218*.......376............890....*.838...81......*.....138.../194................
+..............156......$..*...891.&731....%..89...................523..........699....+...227......*.......225....=...........388....*......
+................*...189..591.*................*.......783.....107..-...54.287..$................533.../..............909........&.603.424..."
+        );
+        let correct_part_numbers: Vec<usize> = vec![
+            12,
+            935,
+            184,
+            720,
+            243,
+            589,
+            435,
+            6,
+            904,
+            968,
+            986,
+            459,
+            422,
+            482,
+            291,
+            612,
+            290,
+            903,
+            699,
+            218,
+            376,
+            890,
+            838,
+            81,
+            138,
+            194,
+            156,
+            891,
+            731,
+            89,
+            523,
+            699,
+            227,
+            225,
+            388,
+            189,
+            591,
+            533,
+            603,
+            424,
+        ];
+        let correct_sum: usize = correct_part_numbers.iter().sum();
+        let part_numbers = find_part_numbers(&input);
+        let sum: usize = part_numbers.iter().sum();
+
+        let mut sorted_part_numbers = part_numbers.clone();
+        let mut sorted_correct_part_numbers = correct_part_numbers.clone();
+        sorted_part_numbers.sort();
+        sorted_correct_part_numbers.sort();
+
+        eprintln!("{:?}", sorted_part_numbers);
+        eprintln!("{:?}", sorted_correct_part_numbers);
+
+        assert_eq!(sorted_part_numbers, sorted_correct_part_numbers);
+        assert_eq!(correct_sum, sum);
     }
 }
