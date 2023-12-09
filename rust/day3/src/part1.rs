@@ -33,15 +33,10 @@ impl Grid {
     pub fn from_lines(lines_slice: &[&str]) -> Grid {
         let height: usize = lines_slice.len();
         let width: usize = lines_slice[0].len();
-        // let mut grid: Vec<char> = lines_slice
-        //     .iter()
-        //     .map(|s| s.chars())
-        //     .fold("".chars(), |a, b| a.chain(b))
-        //     .collect();
-        let mut grid: Vec<char> = Vec::new();
-        for s in lines_slice {
-            grid.append(&mut s.chars().collect::<Vec<char>>());
-        }
+        let grid: Vec<char> = lines_slice
+            .iter()
+            .flat_map(|s| s.chars())
+            .collect();
         Grid { grid, width, height }
     }
     pub fn to_index(&self, coordinate: Coordinate) -> usize {
