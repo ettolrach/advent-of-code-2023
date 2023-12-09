@@ -6,9 +6,9 @@ type Coordinate = [usize; 2];
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Grid {
-    grid: Vec<char>,
-    width: usize,
-    height: usize,
+    pub grid: Vec<char>,
+    pub width: usize,
+    pub height: usize,
 }
 impl Grid {
     pub fn new(s: &str) -> Grid {
@@ -45,14 +45,14 @@ impl Grid {
     pub fn to_coordinate(&self, index: usize) -> Coordinate {
         [index % self.width, index / self.width]
     }
-    fn in_bounds(&self, coordinate: [isize; 2]) -> bool{
+    pub fn in_bounds(&self, coordinate: [isize; 2]) -> bool{
         coordinate[0] < self.width as isize
             && coordinate[0] >= 0
             && coordinate[1] < self.height as isize
             && coordinate[1] >= 0
     }
 
-    fn get_surrounding_indicies_in_bounds(&self, index: usize) -> Vec<usize> {
+    pub fn get_surrounding_indicies_in_bounds(&self, index: usize) -> Vec<usize> {
         let temp_coordinate = self.to_coordinate(index);
         let mut coordinate = [temp_coordinate[0] as isize, temp_coordinate[1] as isize];
         let mut coordinates: [[isize; 2]; 8] = [
@@ -75,7 +75,7 @@ impl Grid {
         to_return
     
     }
-    fn get_number_from_index_and_delete(&mut self, index: usize) -> usize {
+    pub fn get_number_from_index_and_delete(&mut self, index: usize) -> usize {
         let coordinate = self.to_coordinate(index);
         let mut first_column: usize = 0;
         for i in (0..(coordinate[0])).rev() {
