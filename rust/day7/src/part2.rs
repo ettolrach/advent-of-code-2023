@@ -1,10 +1,12 @@
 use std::str::FromStr;
+use crate::part1::{ Category, VecMap };
 
 #[derive(Debug)]
 pub struct CardParseError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Card {
+	Joker,
     Two,
     Three,
     Four,
@@ -14,7 +16,6 @@ pub enum Card {
     Eight,
     Nine,
     Ten,
-    Jack,
     Queen,
     King,
     Ace,
@@ -23,6 +24,7 @@ impl FromStr for Card {
     type Err = CardParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+			"J" => Ok(Card::Joker),
             "2" => Ok(Card::Two),
             "3" => Ok(Card::Three),
             "4" => Ok(Card::Four),
@@ -32,7 +34,6 @@ impl FromStr for Card {
             "8" => Ok(Card::Eight),
             "9" => Ok(Card::Nine),
             "T" => Ok(Card::Ten),
-            "J" => Ok(Card::Jack),
             "Q" => Ok(Card::Queen),
             "K" => Ok(Card::King),
             "A" => Ok(Card::Ace),
@@ -41,113 +42,83 @@ impl FromStr for Card {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Category {
-    HighCard,
-    OnePair,
-    TwoPair,
-    ThreeOfAKind,
-    FullHouse,
-    FourOfAKind,
-    FiveOfAKind,
-}
-
-pub fn all_equal<A>(slice: &[A]) -> bool
-where
-    A: PartialEq
-{
-    if slice.is_empty() {
-        return false
-    }
-    slice.iter().all(|a| a == &slice[0])
-}
-
-pub struct VecMap<K, V> {
-    vec: Vec<(K, V)>
-}
-impl<K, V> VecMap<K, V> {
-    pub fn new() -> VecMap<K, V>
-    where
-        K: PartialEq,
-    {
-        VecMap { vec: Vec::new() }
-    }
-    pub fn from_tuples_slice(tuples: &[(K, V)]) -> VecMap<K, V>
-    where
-        K: Clone,
-        K: PartialEq,
-        V: Clone,
-    {
-        VecMap { vec: Vec::from(tuples) }
-    }
-    pub fn get_value(&self, key: &K) -> Option<&V>
-    where
-        K: PartialEq,
-    {
-        match self.get_id_from_key(key) {
-            Some(i) => Some(&self.vec[i].1),
-            None => None,
-        }
-    }
-    fn get_id_from_key(&self, key: &K) -> Option<usize>
-    where
-        K: PartialEq,
-    {
-        for i in 0..(self.vec.len()) {
-            if &self.vec[i].0 == key {
-                return Some(i)
-            }
-        }
-        None
-    }
-    pub fn update(&mut self, tuple: (K, V))
-    where
-        K: PartialEq
-    {
-        match self.get_id_from_key(&tuple.0) {
-            Some(i) => self.vec[i].1 = tuple.1,
-            None => self.vec.push(tuple),
-        }
-    }
-    pub fn update_with_fn(&mut self, key: K, identity: V, func: impl FnOnce(&V) -> V)
-    where
-        K: PartialEq
-    {
-        match self.get_id_from_key(&key) {
-            Some(i) => self.vec[i].1 = func(&self.vec[i].1),
-            None => self.update((key, identity)),
-        }
-    }
-    pub fn keys(&self) -> Vec<&K> {
-        self.vec.iter().map(|tuple| &tuple.0).collect()
-    }
-    pub fn values(&self) -> Vec<&V> {
-        self.vec.iter().map(|tuple| &tuple.1).collect()
-    }
-}
+const NORMAL_CARDS: [Card; 12] = [
+    Card::Two,
+    Card::Three,
+    Card::Four,
+    Card::Five,
+    Card::Six,
+    Card::Seven,
+    Card::Eight,
+    Card::Nine,
+    Card::Ten,
+    Card::Queen,
+    Card::King,
+    Card::Ace,
+];
 
 pub fn get_category(hand: &[Card; 5]) -> Category {
+    // let mut joker_positions: Vec<usize> = Vec::new();
+    // for i in 0..5 {
+    //     if hand[i] == Card::Joker {
+    //         joker_positions.push(i);
+    //     }
+    // }
+    // if joker_positions.len() == 5 {
+    //     return Category::FiveOfAKind
+    // }
+
+    // let mut hands_to_check: Vec<[Card; 5]> = Vec::new();
+    // for id in joker_positions {
+    //     for c in NORMAL_CARDS {
+    //         let mut new_hand = hand.clone();
+    //         new_hand[id] = c;
+    //         hands_to_check.push(new_hand)
+    //     }
+    // }
+
     let mut vec_map: VecMap<Card, usize> = VecMap::new();
     for card in hand {
         vec_map.update_with_fn(*card, 1, |n| n + 1);
     }
     let count: Vec<usize> = vec_map.values().iter().map(|n| **n).collect();
-    if count.contains(&5) {
+    let joker_count:usize  = match vec_map.get_value(&Card::Joker) {
+        Some(n) => *n,
+        None => 0,
+    };
+    let five_of_a_kind_rule: bool = count.contains(&5)
+        || (count.contains(&4) && joker_count == 1)
+        || (count.contains(&3) && joker_count == 2)
+        || (count.contains(&2) && joker_count == 3)
+        || (count.contains(&1) && joker_count == 4);
+    if five_of_a_kind_rule {
         return Category::FiveOfAKind
     }
-    if count.contains(&4) {
+    let four_of_a_kind_rule: bool = count.contains(&4)
+        || (count.contains(&3) && joker_count == 1)
+        || (count.contains(&2) && joker_count == 2)
+        || (count.contains(&1) && joker_count == 3);
+    if four_of_a_kind_rule  {
         return Category::FourOfAKind
     }
-    if count.contains(&3) && count.contains(&2) {
+    let full_house_rule: bool = (count.contains(&3) && count.contains(&2))
+        || ((count.iter().filter(|n| n == &&2).count() == 2) && (joker_count == 1));
+    if full_house_rule {
         return Category::FullHouse
     }
-    if count.contains(&3) {
+    let three_of_a_kind_rule: bool = count.contains(&3)
+        || (count.contains(&2) && joker_count == 1 && (count.iter().filter(|n| n == &&1).count() == 2))
+        || (count.contains(&1) && joker_count == 2);
+    if three_of_a_kind_rule {
         return Category::ThreeOfAKind
     }
-    if count.iter().filter(|n| n == &&2).count() == 2 {
+    let two_pair_rule: bool = count.iter().filter(|n| n == &&2).count() == 2;
+    if two_pair_rule {
         return Category::TwoPair
     }
-    if count.contains(&2) {
+    let one_pair_rule: bool = count.contains(&2)
+        || (count.iter().filter(|n| n == &&1).count() == 5) && joker_count == 1;
+    if one_pair_rule {
         return Category::OnePair
     }
     Category::HighCard
@@ -219,10 +190,10 @@ mod tests {
     #[test]
     fn hand_ordering() {
         use Card::*;
-        let lowest = Hand::from_str("12344");
-        let middle = Hand::from_str("1KQQQ");
-        let high = Hand::from_str("21QQQ");
-        let highest = Hand::from_str("555AA");
+        let lowest = Hand::from_str("2534J");
+        let middle = Hand::from_str("2KQQJ");
+        let high = Hand::from_str("32QQJ");
+        let highest = Hand::from_str("55JAA");
         let control_cards = vec![lowest.clone(), middle.clone(), high.clone(), highest.clone()];
         let mut sorted_cards = vec![middle, high, highest, lowest];
         sorted_cards.sort();
@@ -241,7 +212,7 @@ QQQJA 483"
         let mut hands: Vec<CamelHand> = input.lines().map(|s| string_to_camel_hand(s)).collect();
         sort_camel_hands(&mut hands);
         let total_winnings = calculate_total_winnings(&hands[..]);
-        let expected_total_winnings: usize = 6440;
+        let expected_total_winnings: usize = 5905;
         assert_eq!(expected_total_winnings, total_winnings);
     }
 }
