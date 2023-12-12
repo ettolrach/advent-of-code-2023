@@ -61,21 +61,6 @@ impl ToString for Card {
     }
 }
 
-const NORMAL_CARDS: [Card; 12] = [
-    Card::Two,
-    Card::Three,
-    Card::Four,
-    Card::Five,
-    Card::Six,
-    Card::Seven,
-    Card::Eight,
-    Card::Nine,
-    Card::Ten,
-    Card::Queen,
-    Card::King,
-    Card::Ace,
-];
-
 pub fn get_category(hand: &[Card; 5]) -> Category {
     // let mut joker_positions: Vec<usize> = Vec::new();
     // for i in 0..5 {
@@ -217,12 +202,6 @@ pub fn string_to_camel_hand(s: &str) -> CamelHand {
     let hand = Hand::from_str(s_iter.next().unwrap());
     let bid: usize = s_iter.next().unwrap().parse().unwrap();
     (hand, bid)
-}
-
-fn print_hands(hands: &[Hand]) {
-    for h in hands {
-        println!("{}", h.cards.iter().map(|card| card.to_string()).collect::<String>())
-    }
 }
 
 #[cfg(test)]
@@ -421,7 +400,6 @@ JJJJ8 619"
         ).lines().map(|s| string_to_camel_hand(s)).collect();
         let expected_totals: Vec<usize> = vec![851, (114 * 2), (477 * 3), (72 * 4), (597 * 5), (12 * 6), (146 * 7), (465 * 8), (109 * 9), (303 * 10), (668 * 11), (352 * 12), (193 * 13), (247 * 14), (453 * 15), (148 * 16), (811 * 17), (373 * 18), (529 * 19), (788 * 20), (136 * 21), (806 * 22), (576 * 23), (277 * 24), (11 * 25), (152 * 26), (116 * 27), (885 * 28), (704 * 29), (252 * 30), (201 * 31), (167 * 32), (417 * 33), (782 * 34), (63 * 35), (651 * 36), (855 * 37), (419 * 38), (879 * 39), (619 * 40)];
         let totals: Vec<usize> = (0..(hands.len())).map(|i| hands[i].1 * (i + 1)).collect();
-        print_hands(&hands.clone().iter().map(|hand| hand.0).collect::<Vec<_>>()[..]);
         assert_eq!(expected_totals, totals);
         let expected_total_winnings: usize = 372384;
         assert_eq!(sorted.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>(), hands.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>());
