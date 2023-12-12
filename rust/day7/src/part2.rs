@@ -119,7 +119,7 @@ pub fn get_category(hand: &[Card; 5]) -> Category {
     }
     let four_of_a_kind_rule: bool = count.contains(&4)
         || (count.contains(&3) && joker_count == 1)
-        || (count.contains(&2) && joker_count == 2)
+        || ((count.iter().filter(|n| n == &&2).count() == 2) && joker_count == 2)
         || (count.contains(&1) && joker_count == 3);
     if four_of_a_kind_rule  {
         return Category::FourOfAKind
@@ -455,5 +455,12 @@ JJ2JJ 3"
         assert_eq!(sorted, hands);
         assert_eq!(expected_total_winnings, total_winnings);
 
+    }
+
+    #[test]
+    fn another_edge_case() {
+        let input = String::from("J68J4 42");
+        let (hand, _) = string_to_camel_hand(&input[..]);
+        assert_eq!(Category::ThreeOfAKind, hand.category)
     }
 }
