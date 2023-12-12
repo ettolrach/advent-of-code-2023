@@ -6,7 +6,7 @@ pub struct CardParseError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Card {
-	Joker,
+    Joker,
     Two,
     Three,
     Four,
@@ -24,7 +24,7 @@ impl FromStr for Card {
     type Err = CardParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-			"J" => Ok(Card::Joker),
+            "J" => Ok(Card::Joker),
             "2" => Ok(Card::Two),
             "3" => Ok(Card::Three),
             "4" => Ok(Card::Four),
