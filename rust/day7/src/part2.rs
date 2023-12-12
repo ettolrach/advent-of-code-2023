@@ -41,6 +41,25 @@ impl FromStr for Card {
         }
     }
 }
+impl ToString for Card {
+    fn to_string(&self) -> String {
+        String::from(match self {
+            Card::Joker => "J",
+            Card::Two => "2",
+            Card::Three => "3",
+            Card::Four => "4",
+            Card::Five => "5",
+            Card::Six => "6",
+            Card::Seven => "7",
+            Card::Eight => "8",
+            Card::Nine => "9",
+            Card::Ten => "T",
+            Card::Queen => "Q",
+            Card::King => "K",
+            Card::Ace => "A",
+        })
+    }
+}
 
 const NORMAL_CARDS: [Card; 12] = [
     Card::Two,
@@ -81,8 +100,12 @@ pub fn get_category(hand: &[Card; 5]) -> Category {
     for card in hand {
         vec_map.update_with_fn(*card, 1, |n| n + 1);
     }
+    // println!("vec_map:");
+    // for card_count in vec_map.vec.clone() {
+    //     println!("{:?}", card_count);
+    // }
     let count: Vec<usize> = vec_map.values().iter().map(|n| **n).collect();
-    let joker_count:usize  = match vec_map.get_value(&Card::Joker) {
+    let joker_count: usize  = match vec_map.get_value(&Card::Joker) {
         Some(n) => *n,
         None => 0,
     };
@@ -107,7 +130,7 @@ pub fn get_category(hand: &[Card; 5]) -> Category {
         return Category::FullHouse
     }
     let three_of_a_kind_rule: bool = count.contains(&3)
-        || (count.contains(&2) && joker_count == 1 && (count.iter().filter(|n| n == &&1).count() == 2))
+        || (count.contains(&2) && joker_count == 1 && (count.iter().filter(|n| n == &&1).count() == 3))
         || (count.contains(&1) && joker_count == 2);
     if three_of_a_kind_rule {
         return Category::ThreeOfAKind
@@ -173,6 +196,19 @@ pub fn sort_camel_hands(hands: &mut [CamelHand]) {
 }
 
 pub fn calculate_total_winnings(hands: &[CamelHand]) -> usize {
+    // println!("{:?}", (0..(hands.len())));
+    // println!("mapped:");
+    // for i in (0..(hands.len())).map(|i| hands[i].1 * (i + 1)) {
+    //     println!("{}", i);
+    // }
+    // let sum = (0..(hands.len())).map(|i| hands[i].1 * (i + 1)).sum::<usize>();
+    // let mut running_total: usize = 0;
+    // for n in (0..(hands.len())).map(|i| hands[i].1 * (i + 1)) {
+    //     running_total += n;
+    //     println!("eee{}", n);
+    // }
+    // println!("running_total: {:?}", running_total);
+    // println!("sum: {:?}", sum);
     (0..(hands.len())).map(|i| hands[i].1 * (i + 1)).sum()
 }
 
@@ -183,13 +219,18 @@ pub fn string_to_camel_hand(s: &str) -> CamelHand {
     (hand, bid)
 }
 
+fn print_hands(hands: &[Hand]) {
+    for h in hands {
+        println!("{}", h.cards.iter().map(|card| card.to_string()).collect::<String>())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn hand_ordering() {
-        use Card::*;
         let lowest = Hand::from_str("2534J");
         let middle = Hand::from_str("2KQQJ");
         let high = Hand::from_str("32QQJ");
@@ -214,5 +255,205 @@ QQQJA 483"
         let total_winnings = calculate_total_winnings(&hands[..]);
         let expected_total_winnings: usize = 5905;
         assert_eq!(expected_total_winnings, total_winnings);
+    }
+
+    #[test]
+    fn category_116() {
+        let hand: CamelHand = (Hand::from_str("Q9TQJ"), 116);
+        let expected_category = Category::ThreeOfAKind;
+        assert_eq!(expected_category, hand.0.category);
+    }
+    #[test]
+    fn category_152() {
+        let hand: CamelHand = (Hand::from_str("Q4J94"), 152);
+        let expected_category = Category::ThreeOfAKind;
+        assert_eq!(expected_category, hand.0.category);
+    }
+    #[test]
+    fn category_193() {
+        let hand: CamelHand = (Hand::from_str("55T8T"), 193);
+        let expected_category = Category::TwoPair;
+        assert_eq!(expected_category, hand.0.category);
+    }
+
+    #[test]
+    fn input_extract() {
+        let input = String::from(
+"JJJJ8 619
+Q4J94 152
+77587 277
+7333J 651
+QQQQ2 419
+72KA3 851
+555Q2 806
+37QTT 72
+39446 597
+KK99T 453
+T5522 247
+8TK48 109
+46J82 146
+444A7 788
+Q9TQJ 116
+3A9AA 529
+5AAAJ 63
+T9522 668
+ATJTJ 879
+7TATT 11"
+        );
+        let mut hands: Vec<CamelHand> = input.lines().map(|s| string_to_camel_hand(s)).collect();
+        sort_camel_hands(&mut hands);
+        let total_winnings = calculate_total_winnings(&hands[..]);
+        let sorted: Vec<CamelHand> = String::from(
+"72KA3 851
+37QTT 72
+39446 597
+46J82 146
+8TK48 109
+T9522 668
+T5522 247
+KK99T 453
+3A9AA 529
+444A7 788
+555Q2 806
+77587 277
+7TATT 11
+Q4J94 152
+Q9TQJ 116
+5AAAJ 63
+7333J 651
+QQQQ2 419
+ATJTJ 879
+JJJJ8 619"
+        ).lines().map(|s| string_to_camel_hand(s)).collect();
+        let expected_total_winnings: usize = 90816;
+        assert_eq!(sorted.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>(), hands.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>());
+        assert_eq!(expected_total_winnings, total_winnings);
+    }
+
+    #[test]
+    fn bigger_input_extract() {
+        let input = String::from(
+"JJJJ8 619
+Q4J94 152
+77587 277
+7333J 651
+QQQQ2 419
+72KA3 851
+555Q2 806
+37QTT 72
+39446 597
+KK99T 453
+T5522 247
+8TK48 109
+46J82 146
+444A7 788
+Q9TQJ 116
+3A9AA 529
+5AAAJ 63
+T9522 668
+ATJTJ 879
+7TATT 11
+88686 885
+5QJ55 782
+72K77 576
+KQ48J 352
+JJ488 704
+3K356 12
+JQJAQ 201
+26272 373
+88JJ2 855
+35333 167
+755Q4 465
+5J6T5 136
+JTA23 477
+J8488 252
+55556 417
+55T8T 193
+22782 148
+2372J 811
+J4K72 114
+9Q4KK 303"
+        );
+        let mut hands: Vec<CamelHand> = input.lines().map(|s| string_to_camel_hand(s)).collect();
+        sort_camel_hands(&mut hands);
+        let total_winnings = calculate_total_winnings(&hands[..]);
+        let sorted: Vec<CamelHand> = String::from(
+"72KA3 851
+J4K72 114
+JTA23 477
+37QTT 72
+39446 597
+3K356 12
+46J82 146
+755Q4 465
+8TK48 109
+9Q4KK 303
+T9522 668
+KQ48J 352
+55T8T 193
+T5522 247
+KK99T 453
+22782 148
+2372J 811
+26272 373
+3A9AA 529
+444A7 788
+5J6T5 136
+555Q2 806
+72K77 576
+77587 277
+7TATT 11
+Q4J94 152
+Q9TQJ 116
+88686 885
+JJ488 704
+J8488 252
+JQJAQ 201
+35333 167
+55556 417
+5QJ55 782
+5AAAJ 63
+7333J 651
+88JJ2 855
+QQQQ2 419
+ATJTJ 879
+JJJJ8 619"
+        ).lines().map(|s| string_to_camel_hand(s)).collect();
+        let expected_totals: Vec<usize> = vec![851, (114 * 2), (477 * 3), (72 * 4), (597 * 5), (12 * 6), (146 * 7), (465 * 8), (109 * 9), (303 * 10), (668 * 11), (352 * 12), (193 * 13), (247 * 14), (453 * 15), (148 * 16), (811 * 17), (373 * 18), (529 * 19), (788 * 20), (136 * 21), (806 * 22), (576 * 23), (277 * 24), (11 * 25), (152 * 26), (116 * 27), (885 * 28), (704 * 29), (252 * 30), (201 * 31), (167 * 32), (417 * 33), (782 * 34), (63 * 35), (651 * 36), (855 * 37), (419 * 38), (879 * 39), (619 * 40)];
+        let totals: Vec<usize> = (0..(hands.len())).map(|i| hands[i].1 * (i + 1)).collect();
+        print_hands(&hands.clone().iter().map(|hand| hand.0).collect::<Vec<_>>()[..]);
+        assert_eq!(expected_totals, totals);
+        let expected_total_winnings: usize = 372384;
+        assert_eq!(sorted.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>(), hands.iter().map(|tuple| tuple.0.category).collect::<Vec<_>>());
+        assert_eq!(expected_total_winnings, total_winnings);
+    }
+
+    #[test]
+    fn edge_cases() {
+        let input = String::from(
+"7788J 1
+JJJJJ 2
+JJ2JJ 3
+87654 4
+54995 5
+9J33Q 6
+KJ639 7"
+        );
+        let sorted: Vec<CamelHand> = String::from(
+"87654 4
+KJ639 7
+54995 5
+9J33Q 6
+7788J 1
+JJJJJ 2
+JJ2JJ 3"
+        ).lines().map(|s| string_to_camel_hand(s)).collect();
+        let mut hands: Vec<CamelHand> = input.lines().map(|s| string_to_camel_hand(s)).collect();
+        sort_camel_hands(&mut hands);
+        let total_winnings = calculate_total_winnings(&hands[..]);
+        let expected_total_winnings: usize = 95;
+        assert_eq!(sorted, hands);
+        assert_eq!(expected_total_winnings, total_winnings);
+
     }
 }

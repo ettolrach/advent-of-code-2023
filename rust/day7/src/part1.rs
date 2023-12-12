@@ -63,7 +63,7 @@ where
 }
 
 pub struct VecMap<K, V> {
-    vec: Vec<(K, V)>
+    pub vec: Vec<(K, V)>
 }
 impl<K, V> VecMap<K, V> {
     pub fn new() -> VecMap<K, V>
@@ -218,7 +218,6 @@ mod tests {
 
     #[test]
     fn hand_ordering() {
-        use Card::*;
         let lowest = Hand::from_str("12344");
         let middle = Hand::from_str("1KQQQ");
         let high = Hand::from_str("21QQQ");
